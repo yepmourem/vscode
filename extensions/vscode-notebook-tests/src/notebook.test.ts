@@ -690,11 +690,18 @@ suite('notebook workflow', () => {
 		await vscode.commands.executeCommand('notebook.focusTop');
 		const cell = editor.document.cells[0];
 		assert.equal(cell.outputs.length, 0);
+
+		let metadataChangeEvent = getEventOncePromise<vscode.NotebookCellMetadataChangeEvent>(vscode.notebook.onDidChangeCellMetadata);
 		cell.metadata.runnable = false;
+		await metadataChangeEvent;
+
 		await vscode.commands.executeCommand('notebook.cell.execute');
 		assert.equal(cell.outputs.length, 0, 'should not execute'); // not runnable, didn't work
 
+		metadataChangeEvent = getEventOncePromise<vscode.NotebookCellMetadataChangeEvent>(vscode.notebook.onDidChangeCellMetadata);
 		cell.metadata.runnable = true;
+		await metadataChangeEvent;
+
 		await vscode.commands.executeCommand('notebook.cell.execute');
 		assert.equal(cell.outputs.length, 1, 'should execute'); // runnable, it worked
 
@@ -711,11 +718,17 @@ suite('notebook workflow', () => {
 
 		const cell = editor.document.cells[0];
 		assert.equal(cell.outputs.length, 0);
+		let metadataChangeEvent = getEventOncePromise<vscode.NotebookDocumentMetadataChangeEvent>(vscode.notebook.onDidChangeNotebookDocumentMetadata);
 		editor.document.metadata.runnable = false;
+		await metadataChangeEvent;
+
 		await vscode.commands.executeCommand('notebook.execute');
 		assert.equal(cell.outputs.length, 0, 'should not execute'); // not runnable, didn't work
 
+		metadataChangeEvent = getEventOncePromise<vscode.NotebookDocumentMetadataChangeEvent>(vscode.notebook.onDidChangeNotebookDocumentMetadata);
 		editor.document.metadata.runnable = true;
+		await metadataChangeEvent;
+
 		await vscode.commands.executeCommand('notebook.execute');
 		assert.equal(cell.outputs.length, 1, 'should execute'); // runnable, it worked
 
